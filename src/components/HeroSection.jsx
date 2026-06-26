@@ -1,7 +1,10 @@
+'use client';
+
 import { useState } from 'react';
 import { Sparkles, LogIn, UserPlus } from 'lucide-react';
+import Link from 'next/link';
 
-export default function HeroSection({ onNavigate }) {
+export default function HeroSection() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
 
@@ -18,7 +21,7 @@ export default function HeroSection({ onNavigate }) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 pb-16 overflow-hidden select-none"
+      className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 pb-16 overflow-hidden select-none bg-slate-950 text-white"
     >
       {/* Background ambient glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -65,21 +68,21 @@ export default function HeroSection({ onNavigate }) {
 
       {/* CTA Buttons */}
       <div className="relative flex flex-col sm:flex-row items-center gap-4 animate-fade-in">
-        <button
-          onClick={() => onNavigate('register')}
-          className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-400 hover:to-cyan-400 transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 active:scale-95 cursor-pointer"
+        <Link
+          href="/register"
+          className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-400 hover:to-cyan-400 transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 active:scale-95 cursor-pointer decoration-none"
         >
           <UserPlus className="w-4 h-4" />
           Daftar Sekarang
-        </button>
+        </Link>
 
-        <button 
-          onClick={() => onNavigate('login')}
-          className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-slate-300 border border-white/15 bg-white/5 hover:bg-white/10 hover:border-white/30 hover:text-white transition-all duration-200 backdrop-blur-sm active:scale-95 cursor-pointer"
+        <Link 
+          href="/login"
+          className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-slate-300 border border-white/15 bg-white/5 hover:bg-white/10 hover:border-white/30 hover:text-white transition-all duration-200 backdrop-blur-sm active:scale-95 cursor-pointer decoration-none"
         >
           <LogIn className="w-4 h-4" />
           Masuk ke Akun
-        </button>
+        </Link>
       </div>
     </section>
   );

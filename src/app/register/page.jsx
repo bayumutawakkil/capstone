@@ -1,7 +1,15 @@
-import { useState } from 'react';
-import { Tv2, Mail, Lock, Eye, EyeOff, ArrowLeft, User, Check, X } from 'lucide-react';
+'use client';
 
-export default function RegisterPage({ onNavigate }) {
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Tv2, Mail, Lock, Eye, EyeOff, ArrowLeft, User, Check, X } from 'lucide-react';
+import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
+
+export default function RegisterPage() {
+  const router = useRouter();
+  const supabase = createClient();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -15,10 +23,13 @@ export default function RegisterPage({ onNavigate }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
 
-  // Validasi Real-time
+  // Validasi & Auth State
   const [emailError, setEmailError] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -72,10 +83,12 @@ export default function RegisterPage({ onNavigate }) {
 
   // Status Kecocokan Kata Sandi
   const isPasswordMatch = confirmPassword.length > 0 && password === confirmPassword;
-  const isPasswordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
-  const handleSubmit = (e) => {
+  // Submit Registrasi Email
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const passStrength = getPasswordStrength(password);
     
@@ -87,7 +100,52 @@ export default function RegisterPage({ onNavigate }) {
       return;
     }
 
-    alert(`Mencoba mendaftar dengan Nama: ${name}, Email: ${email}`);
+    setIsSubmitting(true);
+    const { error, data } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+        },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      setErrorMessage(error.message);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
+      setIsSubmitting(false);
+    } else {
+      // Periksa apakah user otomatis login (konfirmasi email dinonaktifkan di Supabase)
+      if (data?.session) {
+        setSuccessMessage('Pendaftaran berhasil! Mengarahkan ke dashboard...');
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1500);
+      } else {
+        setSuccessMessage('Pendaftaran berhasil! Silakan periksa kotak masuk email Anda untuk melakukan verifikasi akun.');
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  // Login OAuth
+  const handleOAuthSignIn = async (provider) => {
+    setErrorMessage('');
+    setIsSubmitting(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      setErrorMessage(error.message);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -115,22 +173,21 @@ export default function RegisterPage({ onNavigate }) {
 
       {/* Top Header / Back Button */}
       <header className="relative z-10 px-6 py-4 flex items-center justify-between">
-        <button
-          onClick={() => onNavigate('landing')}
-          className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-200 cursor-pointer"
+        <Link
+          href="/"
+          className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-200 cursor-pointer decoration-none"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           Kembali ke Beranda
-        </button>
-
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('landing')}>
+        </Link>
+        <Link href="/" className="flex items-center gap-2 cursor-pointer decoration-none">
           <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-400">
             <Tv2 className="w-4 h-4 text-white" />
           </div>
           <span className="text-sm font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
             NowPlaying
           </span>
-        </div>
+        </Link>
       </header>
 
       {/* Main Form Content */}
@@ -147,11 +204,26 @@ export default function RegisterPage({ onNavigate }) {
             </p>
           </div>
 
+          {/* Success Banner */}
+          {successMessage && (
+            <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs text-center font-medium animate-fade-in">
+              {successMessage}
+            </div>
+          )}
+
+          {/* Error Banner */}
+          {errorMessage && (
+            <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs text-center font-medium animate-fade-in">
+              {errorMessage}
+            </div>
+          )}
+
           {/* Social Logins */}
           <div className="grid grid-cols-2 gap-3 mb-5">
             <button
-              onClick={() => alert('Daftar dengan Google')}
-              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-300 border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-200 active:scale-95 cursor-pointer"
+              onClick={() => handleOAuthSignIn('google')}
+              disabled={isSubmitting}
+              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-300 border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-200 active:scale-95 cursor-pointer disabled:opacity-50"
             >
               {/* Google SVG Icon */}
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
@@ -175,8 +247,9 @@ export default function RegisterPage({ onNavigate }) {
               Google
             </button>
             <button
-              onClick={() => alert('Daftar dengan GitHub')}
-              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-300 border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-200 active:scale-95 cursor-pointer"
+              onClick={() => handleOAuthSignIn('github')}
+              disabled={isSubmitting}
+              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-300 border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-200 active:scale-95 cursor-pointer disabled:opacity-50"
             >
               {/* GitHub SVG Icon */}
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -207,10 +280,11 @@ export default function RegisterPage({ onNavigate }) {
                   id="name"
                   type="text"
                   required
+                  disabled={isSubmitting}
                   placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-900/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  className="w-full bg-slate-900/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
                 />
               </div>
             </div>
@@ -230,11 +304,12 @@ export default function RegisterPage({ onNavigate }) {
                   id="email"
                   type="email"
                   required
+                  disabled={isSubmitting}
                   placeholder="name@domain.com"
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   onBlur={handleEmailBlur}
-                  className={`w-full bg-slate-900/60 border rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                  className={`w-full bg-slate-900/60 border rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 disabled:opacity-50 ${
                     emailTouched
                       ? emailError
                         ? 'border-rose-500/50 focus:border-rose-500 focus:ring-rose-500/10'
@@ -262,10 +337,11 @@ export default function RegisterPage({ onNavigate }) {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   required
+                  disabled={isSubmitting}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-900/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  className="w-full bg-slate-900/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
                 />
                 <button
                   type="button"
@@ -308,10 +384,11 @@ export default function RegisterPage({ onNavigate }) {
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   required
+                  disabled={isSubmitting}
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full bg-slate-900/60 border rounded-xl py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                  className={`w-full bg-slate-900/60 border rounded-xl py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 disabled:opacity-50 ${
                     confirmPassword.length > 0
                       ? isPasswordMatch
                         ? 'border-emerald-500/50 focus:border-emerald-500 focus:ring-emerald-500/10'
@@ -334,6 +411,7 @@ export default function RegisterPage({ onNavigate }) {
                 id="terms"
                 type="checkbox"
                 required
+                disabled={isSubmitting}
                 checked={agreeTerms}
                 onChange={(e) => setAgreeTerms(e.target.checked)}
                 className="mt-0.5 w-4 h-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500/30 focus:ring-offset-0 focus:ring-2 cursor-pointer"
@@ -345,21 +423,22 @@ export default function RegisterPage({ onNavigate }) {
 
             <button
               type="submit"
-              className={`w-full relative inline-flex items-center justify-center py-3 px-4 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-400 hover:to-cyan-400 transition-all duration-300 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${isShaking ? 'animate-shake' : ''}`}
+              disabled={isSubmitting}
+              className={`w-full relative inline-flex items-center justify-center py-3 px-4 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-400 hover:to-cyan-400 transition-all duration-300 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-50 ${isShaking ? 'animate-shake' : ''}`}
             >
-              Daftar
+              {isSubmitting ? 'Mendaftarkan...' : 'Daftar'}
             </button>
           </form>
 
           {/* Bottom Link */}
           <div className="mt-6 text-center text-xs sm:text-sm text-slate-500">
             Sudah punya akun?{' '}
-            <button
-              onClick={() => onNavigate('login')}
-              className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+            <Link
+              href="/login"
+              className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer decoration-none"
             >
               Masuk
-            </button>
+            </Link>
           </div>
         </div>
       </main>
