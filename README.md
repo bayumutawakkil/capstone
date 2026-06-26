@@ -5,6 +5,13 @@
   **Comprehensive Media & Literacy Tracker**
 
   <p>Lacak, ukur, dan analisis seluruh konsumsi hiburan dan literasi Anda dalam satu platform yang elegan. Dari Game, Anime, Buku, Komik, hingga Film & Serial TV.</p>
+
+  <p>
+    <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+    <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+    <img src="https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright" />
+  </p>
 </div>
 
 ---
@@ -71,12 +78,19 @@ Tabel pencatat sejarah *(Event logger)* yang mengawasi grafik mingguan agar pers
 
 ---
 
-## 🏗️ Instalasi & Menjalankan (Local Development)
+## 🏗️ Prasyarat & Instalasi (Local Development)
+
+### Prasyarat
+- **Node.js** (v18.17 atau lebih baru)
+- Akun **Supabase** (untuk *database* & *auth*)
+- **TMDB API Key** (opsional, untuk data film/TV)
+
+### Langkah-langkah Instalasi
 
 1. **Kloning Repositori:**
    ```bash
-   git clone https://github.com/username/nowplaying.git
-   cd nowplaying
+   git clone https://github.com/bayumutawakkil/capstone.git
+   cd capstone
    ```
 
 2. **Instalasi Dependencies:**
@@ -85,19 +99,35 @@ Tabel pencatat sejarah *(Event logger)* yang mengawasi grafik mingguan agar pers
    ```
 
 3. **Pengaturan Variabel Lingkungan (.env.local):**
-   Pastikan Anda memasukkan *Keys* Supabase dan TMDB Anda.
+   Buat file `.env.local` di *root directory* dan pastikan Anda memasukkan *Keys* Supabase dan TMDB Anda.
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_api_key
    ```
 
-4. **Jalankan Server:**
+4. **Persiapan Database:**
+   Pastikan Anda telah membuat tabel `media_items` dan `session_logs` pada *dashboard* Supabase Anda sesuai struktur di atas.
+
+5. **Jalankan Server Development:**
    ```bash
    npm run dev
    ```
-   Buka `http://localhost:3000` di *browser*.
+   Buka `http://localhost:3000` di *browser* Anda untuk menjelajahi aplikasi.
 
 ---
 
-*NowPlaying - Lacak tanpa batas, apresiasi setiap karya.* 🌠
+## 🤝 Kontribusi
+
+Kontribusi terbuka untuk siapa saja! Jika Anda menemukan *bug* atau memiliki ide fitur baru, silakan buat *Pull Request*:
+1. *Fork* repositori ini.
+2. Buat *branch* untuk fitur Anda (`git checkout -b feature/FiturLuarBiasa`).
+3. Lakukan *Commit* (`git commit -m 'Menambahkan Fitur Luar Biasa'`).
+4. *Push* ke *branch* tersebut (`git push origin feature/FiturLuarBiasa`).
+5. Buka *Pull Request*.
+
+---
+
+<div align="center">
+  <i>NowPlaying - Lacak tanpa batas, apresiasi setiap karya.</i> 🌠
+</div>
