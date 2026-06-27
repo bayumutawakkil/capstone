@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Layers, Github, Heart } from 'lucide-react';
+import { ArrowLeft, Layers, Code2, Heart } from 'lucide-react';
 
 export default function AboutPage() {
   const router = useRouter();
@@ -67,7 +67,7 @@ export default function AboutPage() {
             <div className="mt-12 pt-8 border-t border-gray-800 flex justify-between items-center">
               <p className="text-xs text-slate-500">© 2026 UKM Neo Telemetri. All rights reserved.</p>
               <a href="https://github.com" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors">
-                <Github className="w-6 h-6" />
+                <Code2 className="w-6 h-6" />
               </a>
             </div>
           </div>
