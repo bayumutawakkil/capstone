@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Gamepad2, Tv, Film, BookOpen, Compass, Check, Clock, Plus, Trash2, LibraryBig } from 'lucide-react';
 import SessionTimer from './SessionTimer';
 
@@ -135,9 +136,11 @@ export default function ActiveTrackerTab({
                         {getStatusBadge(item.status)}
                       </div>
 
-                      <h4 className="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-2 leading-snug" title={item.title}>
-                        {item.title}
-                      </h4>
+                      <Link href={`/media/${item.id}`}>
+                        <h4 className="text-sm font-bold text-white hover:text-indigo-400 group-hover:text-indigo-300 transition-colors line-clamp-2 leading-snug cursor-pointer" title={item.title}>
+                          {item.title}
+                        </h4>
+                      </Link>
                       
                       <p className="text-xs text-indigo-400/80 mt-1.5 font-medium flex items-center gap-1">
                         <span className="text-slate-500">Unit:</span> 
